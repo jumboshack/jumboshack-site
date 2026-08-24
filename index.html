@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jumboshack — your home's data, in one live dashboard</title>
+<meta name="description" content="Stream your geothermal heat pump (and more) into one live dashboard. Bring your own Raspberry Pi, send data with a simple API, and own your metrics. Built for home-lab tinkerers.">
+<meta property="og:title" content="Jumboshack — your home's data, in one live dashboard">
+<meta property="og:description" content="Stream your geothermal heat pump and more into one live dashboard. Bring your own Pi, send data with a simple API, own your metrics.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/">🌡️ Jumboshack</a>
+    <nav>
+      <a href="#features" class="hide-sm">Features</a>
+      <a href="#how" class="hide-sm">How it works</a>
+      <a href="https://app.jumboshack.com/ingest-docs" class="hide-sm">API</a>
+      <a href="https://app.jumboshack.com/login">Log in</a>
+      <a class="btn" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Now in private beta</span>
+    <h1>Your home's data, in one live dashboard.</h1>
+    <p class="sub">Stream your geothermal heat pump — and eventually everything else your home is doing — into one clean, live dashboard. Bring your own Raspberry Pi, send readings with a simple API, and actually <em>own</em> your metrics.</p>
+    <div class="cta-row">
+      <a class="btn lg" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+      <a class="btn ghost lg" href="https://app.jumboshack.com/ingest-docs">See the API →</a>
+    </div>
+    <p class="note">Free during the beta · No credit card · Works with the hardware you already have</p>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Built for people who like their data</h2>
+      <p>If you run a home lab, tinker with a Pi, or just want to know what your systems are really doing — Jumboshack is for you.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="ic">📈</div>
+        <h3>Live dashboard</h3>
+        <p>Watch temperatures, power, pressures, flow and loop status update in real time — with a schematic view of your whole ground loop.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🧾</div>
+        <h3>History &amp; cost</h3>
+        <p>Every reading kept and rolled up — daily/monthly energy, spending over time at your own electricity rate, and year-over-year trends.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🔌</div>
+        <h3>Bring your own Pi</h3>
+        <p>No proprietary box. Point your own Raspberry Pi at our ingest endpoint and POST JSON — a documented, token-secured API. Test it with a dry run before you go live.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🔒</div>
+        <h3>Your data, your control</h3>
+        <p>Per-device tokens, optional two-factor auth, and read-only sharing so you can show a friend your graphs without handing over the keys.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="soft-bg">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Starts with geothermal. Grows with your home.</h2>
+      <p>We're launching with HVAC / geothermal heat-pump data — the WaterFurnace Aurora control system over Modbus — because that's the hard part done well. The platform is built to hold more: air quality, weather, power, whatever you want to send it next.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>How it works</h2>
+      <p>Three steps from hardware to live graphs.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Get a device token</h3>
+        <p>Create an account, add a device, and copy your one-time <code>jsk_…</code> token.</p>
+      </div>
+      <div class="step">
+        <h3>Send your readings</h3>
+        <p>POST JSON to the ingest API from your own Pi — or run our open pipeline. ISO-8601 timestamps, a <code>?validate=1</code> dry run, and clear docs.</p>
+      </div>
+      <div class="step">
+        <h3>Watch it live</h3>
+        <p>Your dashboard, history, cost, and diagram fill in automatically — from the first reading on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="band">
+      <h2>Ready to see your home in real time?</h2>
+      <p>Jumboshack is invite-only while we're in beta. Tell us a little about your setup and we'll get you a spot.</p>
+      <a class="btn lg" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand" style="font-size:1.1rem">🌡️ Jumboshack</div>
+        <p style="max-width:34ch;font-size:.9rem;margin:.5rem 0 0">Your home's systems, in one live dashboard.</p>
+      </div>
+      <nav>
+        <a href="https://app.jumboshack.com/login">Log in</a>
+        <a href="https://app.jumboshack.com/ingest-docs">API docs</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="mailto:hello@jumboshack.com">Contact</a>
+      </nav>
+    </div>
+    <p class="fine">
+      © 2026 Jumboshack. All rights reserved. Jumboshack is an independent product and is not affiliated with,
+      endorsed by, or sponsored by WaterFurnace, Raspberry Pi, or any other manufacturer; product names and
+      trademarks belong to their respective owners.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
