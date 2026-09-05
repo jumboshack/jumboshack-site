@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Build a Jumboshack Sender — stream your geothermal heat pump</title>
+<meta name="description" content="Turn a Raspberry Pi into a live feed of your WaterFurnace geothermal heat pump. Hardware list, wiring, software, and your first reading — an afternoon project, no soldering.">
+<meta property="og:title" content="Build a Jumboshack Sender">
+<meta property="og:description" content="Turn a Raspberry Pi into a live feed of your geothermal heat pump. Parts list, wiring, software, first reading.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<style>
+/* build-guide-specific styles (kept local to this page) */
+.guide{max-width:var(--readw);margin:0 auto;padding:2.5rem 1.2rem 1rem}
+.guide h2{font-size:1.4rem;margin:2.4rem 0 .6rem;padding-top:1.4rem;border-top:1px solid var(--border)}
+.guide h3{font-size:1.1rem;margin:1.4rem 0 .4rem}
+.guide p,.guide li{color:#2b352f}
+.guide .lead{font-size:1.15rem;color:var(--muted)}
+.meta{display:flex;gap:1.4rem;flex-wrap:wrap;color:var(--muted);font-size:.9rem;margin:.6rem 0 0}
+.meta b{color:var(--ink)}
+.callout{background:var(--soft);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:.9rem 1.1rem;margin:1.1rem 0;font-size:.95rem}
+.callout.warn{border-left-color:#c96;background:#fdf7ee}
+.callout.draft{border-left-color:#c55;background:#fdecec}
+.parts{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+.parts th,.parts td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--border);vertical-align:top}
+.parts th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.parts td.why{color:var(--muted)}
+pre{background:var(--soft);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.55}
+pre .c{color:#5b8a72}
+.guide code{font-family:var(--mono);background:#eef4f1;padding:.12rem .35rem;border-radius:5px;font-size:.88em}
+pre code{background:none;padding:0;color:inherit;font-size:1em}
+.figph{display:flex;align-items:center;justify-content:center;text-align:center;background:repeating-linear-gradient(45deg,#f4f8f6,#f4f8f6 12px,#eef4f1 12px,#eef4f1 24px);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:.9rem;min-height:170px;margin:1rem 0;padding:1rem}
+.step-h{display:flex;align-items:center;gap:.7rem;margin:2rem 0 .3rem}
+.step-n{flex:0 0 auto;width:2rem;height:2rem;border-radius:50%;background:var(--green);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.step-h h2{margin:0;padding:0;border:0}
+.tocard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin:1.4rem 0}
+.tocard ol{margin:.4rem 0 0;padding-left:1.2rem}
+.disclose{font-size:.82rem;color:var(--muted);font-style:italic;margin:.3rem 0 0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">🌡️ Jumboshack</a>
+    <nav>
+      <a href="index.html#features" class="hide-sm">Features</a>
+      <a href="build.html" class="hide-sm">Build guide</a>
+      <a href="https://app.jumboshack.com/ingest-docs" class="hide-sm">API</a>
+      <a href="https://app.jumboshack.com/login">Log in</a>
+      <a class="btn" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+    </nav>
+  </div>
+</header>
+
+<article class="guide">
+
+  <!-- ============================================================
+       DRAFT — remove this callout before linking from the homepage.
+       Only remaining TODO: replace the two [PHOTO] placeholders with
+       real build photos (see the PHOTO comments at each figure).
+       Wiring/pinout diagram is done; sender repo: github.com/jumboshack/jumboshack-sender
+       ============================================================ -->
+  <div class="callout draft">
+    <b>Draft — internal.</b> Ready to publish once the two build <code>[PHOTO]</code>s are dropped in.
+  </div>
+
+  <span class="eyebrow">Build guide</span>
+  <h1>Build a Jumboshack sender</h1>
+  <p class="lead">Turn a Raspberry Pi into a live feed of your geothermal heat pump. It reads your
+  WaterFurnace Aurora control over its Modbus bus, once a minute, and streams the numbers to your
+  Jumboshack dashboard. No soldering, no cloud middleman, and your data stays yours.</p>
+  <div class="meta">
+    <span>⏱️ <b>~2 hours</b> start to finish</span>
+    <span>🧰 <b>~$60</b> in parts</span>
+    <span>🛠️ <b>Beginner-friendly</b> — if you can flash an SD card, you can do this</span>
+  </div>
+
+  <div class="tocard">
+    <b>The five steps</b>
+    <ol>
+      <li><a href="#parts">Gather the parts</a></li>
+      <li><a href="#flash">Flash the Raspberry Pi</a></li>
+      <li><a href="#wire">Wire it to your Aurora</a></li>
+      <li><a href="#software">Install the sender software</a></li>
+      <li><a href="#token">Get your token, go live &amp; verify</a></li>
+    </ol>
+  </div>
+
+  <h2>How it fits together</h2>
+  <p>Two small pieces do the work. A USB-to-RS485 adapter gives the Pi a wire into your heat pump's
+  Modbus bus, and a small <b>pure-Python</b> reader pulls the registers and streams each reading to
+  Jumboshack over HTTPS:</p>
+  <pre><code>  WaterFurnace Aurora ──(RS-485 / Modbus)── USB adapter ── Raspberry Pi
+                                                              │
+                                    fetch_modbus.py (native Python) → push (HTTPS)
+                                                              │
+                                                  ingest.jumboshack.com → your dashboard</code></pre>
+  <p>It runs from <code>cron</code> every minute and is <em>read-only</em> — it only ever reads registers;
+  it never sends anything back to your equipment. If the network hiccups, the reading is spooled and
+  retried, so a blip never costs you data.</p>
+  <div class="callout"><b>Fast and light.</b> Our native Python Modbus reader pulls a full ~1,500-register
+  snapshot of your heat pump in about <b>5 seconds — roughly 4.5× faster</b> than the off-the-shelf
+  tooling, so it's easy on your Pi and barely touches the control bus. Pure Python, one dependency, no
+  Ruby. <span class="disclose">(Measured on a Raspberry Pi at 19200 baud; representative, hardware-dependent.)</span></div>
+
+  <!-- ─────────────────────────────  STEP 1  ───────────────────────────── -->
+  <div class="step-h" id="parts"><span class="step-n">1</span><h2>Gather the parts</h2></div>
+  <p>Everything here is off-the-shelf. If you already run a home lab, you probably have half of it in a
+  drawer. Prices are ballpark.</p>
+
+  <h3>1a · Pick a Raspberry Pi</h3>
+  <p>The sender is featherweight — it reads the Modbus bus and POSTs once a minute — so even the smallest
+  Pi is plenty. Choose on budget vs. convenience. The <b>CanaKit kits bundle the microSD card, power
+  supply, and case</b>, so if you buy a kit you can skip section&nbsp;1c entirely.</p>
+  <table class="parts">
+    <thead><tr><th>Option</th><th>Best for</th><th>~Price</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B09LH5SBPS?tag=castaway0b-20">Raspberry Pi Zero 2 W</a> — board only</td>
+        <td class="why">Cheapest and lowest power draw. Ideal for a dedicated sender if you'll add your own SD / power / case.</td>
+        <td>~$18</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B0CT1NWTHY?tag=castaway0b-20">CanaKit Pi Zero 2 W Starter Kit</a></td>
+        <td class="why">Same tiny Pi, but microSD + power supply + case in one box — the simplest complete start.</td>
+        <td>~$40</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B07V5JTMV9?tag=castaway0b-20">CanaKit Pi 4 (4 GB) Starter Kit</a></td>
+        <td class="why">Full-size USB-A ports and extra headroom if this Pi will run other things too. Complete kit.</td>
+        <td>~$100</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B0CRSNCJ6Y?tag=castaway0b-20">CanaKit Pi 5 (8 GB) Starter Kit PRO</a></td>
+        <td class="why">Most capable — overkill for the sender alone, great if it's also your home-lab box.</td>
+        <td>~$130</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>1b · The RS-485 tap (required)</h3>
+  <table class="parts">
+    <thead><tr><th>Part</th><th>Why</th><th>~Price</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B07B416CPK?tag=castaway0b-20">USB-to-RS485 adapter (FTDI-based)</a></td>
+        <td class="why"><b>Required.</b> The wire into your heat pump's Modbus bus. FTDI-based adapters are the most reliable and show up as <code>/dev/ttyUSB0</code>. Avoid cheap MAX485-only boards.</td>
+        <td>$10–15</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=cat6+ethernet+patch+cable+short&tag=castaway0b-20">Short Ethernet patch cable (to sacrifice)</a></td>
+        <td class="why">The Aurora's AID Tool port is an RJ-45 jack — a cheap Cat5e/6 cable, cut at one end, gives you the exact twisted pairs to land on the adapter (see step&nbsp;3).</td>
+        <td>~$6</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=wire+ferrule+crimp+kit&tag=castaway0b-20">Ferrule kit + crimper (optional)</a></td>
+        <td class="why">Clean, secure terminations into the adapter's screw terminals. Optional but tidy.</td>
+        <td>~$10</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>1c · Add these only if you didn't buy a kit</h3>
+  <table class="parts">
+    <thead><tr><th>Part</th><th>Why</th><th>~Price</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=samsung+evo+microsd+32gb&tag=castaway0b-20">microSD card (32 GB, name-brand)</a></td>
+        <td class="why">Holds Raspberry Pi OS and the sender. Name-brand cards last far longer.</td>
+        <td>~$8</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=raspberry+pi+power+supply&tag=castaway0b-20">Power supply for your Pi model</a></td>
+        <td class="why">Use the correct one — under-powered Pis misbehave in confusing ways.</td>
+        <td>~$10</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=raspberry+pi+case&tag=castaway0b-20">Case (optional)</a></td>
+        <td class="why">Keeps the Pi tidy near the air handler. Any case for your model works.</td>
+        <td>~$8</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="disclose"><b>As an Amazon Associate, Jumboshack earns from qualifying purchases.</b> Some links
+  above are affiliate links — if you buy through them we may earn a small commission at no extra cost to you.
+  We only list parts we actually use.</p>
+
+  <div class="callout">
+    <b>Don't have a WaterFurnace?</b> This guide is written for the WaterFurnace Aurora control, but
+    Jumboshack accepts data from <em>anything</em> that can POST JSON. If you've already got readings from
+    another source, skip to <a href="https://app.jumboshack.com/ingest-docs">the API guide</a> and send them
+    straight in.
+  </div>
+
+  <!-- ─────────────────────────────  STEP 2  ───────────────────────────── -->
+  <div class="step-h" id="flash"><span class="step-n">2</span><h2>Flash the Raspberry Pi</h2></div>
+  <p>Use the official <a href="https://www.raspberrypi.com/software/">Raspberry Pi Imager</a>. Choose
+  <b>Raspberry Pi OS Lite</b> (no desktop needed), and in the Imager's settings (the ⚙️ gear) before you
+  write:</p>
+  <ul>
+    <li>Set a <b>hostname</b> you'll recognize, e.g. <code>pi-geo</code></li>
+    <li>Enable <b>SSH</b> and set a username/password (or drop in your SSH key)</li>
+    <li>Enter your <b>Wi-Fi</b> details (or plan to use Ethernet)</li>
+  </ul>
+  <p>Write the card, pop it in the Pi, and power up. Give it a minute, then connect:</p>
+  <pre><code>ssh pi@pi-geo.local</code></pre>
+
+  <!-- ─────────────────────────────  STEP 3  ───────────────────────────── -->
+  <div class="step-h" id="wire"><span class="step-n">3</span><h2>Wire it to your Aurora</h2></div>
+  <div class="callout warn">
+    <b>Power down the air handler at the breaker before you touch any wiring</b>, and if you're not
+    comfortable around low-voltage HVAC controls, have an installer land the three wires. The RS-485 bus is
+    low voltage, but treat it with respect.
+  </div>
+  <p>The Aurora's <b>AID Tool port</b> is a standard <b>RJ-45 jack</b> carrying the RS-485 (Modbus) bus.
+  The cleanest tap is a cheap Ethernet cable: plug it into the AID port, cut off the far end, and land the
+  two data pairs on your USB-RS485 adapter's <b>A (D+)</b> and <b>B (D−)</b> screw terminals — keeping each
+  pair twisted right up to the terminal for a clean signal.</p>
+
+  <pre><code>  WaterFurnace AID Tool port — RJ-45 jack (standard T568B Ethernet colors)
+  ─────────────────────────────────────────────────────────────────────────
+    RJ-45 pin 1  white/orange ┐
+    RJ-45 pin 3  white/green  ┴── twist ──►  RS-485 adapter:  A   (D+ / TXD+)
+
+    RJ-45 pin 2  orange       ┐
+    RJ-45 pin 4  blue         ┴── twist ──►  RS-485 adapter:  B   (D- / TXD-)
+
+    other pins (24 VAC + unused) ─────────►  <span class="c">DO NOT connect or short</span>
+  ─────────────────────────────────────────────────────────────────────────
+    RS-485 adapter ──── USB ────►  Raspberry Pi          →  /dev/ttyUSB0
+    serial: 19200 baud · 8 data bits · ODD parity · 1 stop bit</code></pre>
+
+  <div class="callout warn">
+    <b>Never short the pins.</b> Two of the AID port's pins carry <b>24 VAC</b> — keep them well clear of the
+    A/B data pins and of each other. A slip can blow the board's 3&nbsp;A fuse, or worst case damage the
+    control board. Only the four data wires above go to the adapter.
+  </div>
+
+  <!-- PHOTO 2 — WIRING CLOSE-UP. Shot: the RS-485 adapter's screw terminals with the two twisted pairs
+       landed & screwed down (white-orange + white-green on A; orange + blue on B), and the Ethernet cable's
+       cut end plus the AID Tool RJ-45 plugged into the heat pump both in frame. Macro, good light. -->
+  <div class="figph">[PHOTO] Close-up: the adapter's A / B terminals with the two twisted pairs landed, and the Ethernet cable plugged into the Aurora's AID Tool port</div>
+
+  <div class="callout">
+    <b>Boards vary slightly.</b> If your AID port or adapter is labeled differently, the rule is the same:
+    the two RS-485 data lines go to <b>A (D+)</b> and <b>B (D−)</b>, and the 24&nbsp;VAC pins are left
+    untouched. A 2-wire A/B connection is all the sender needs — add the adapter's <code>GND</code> only if
+    your board exposes a dedicated communications ground.
+  </div>
+  <p>Plug the adapter into the Pi. It should appear as <code>/dev/ttyUSB0</code>:</p>
+  <pre><code>ls -l /dev/ttyUSB0</code></pre>
+
+  <!-- ─────────────────────────────  STEP 4  ───────────────────────────── -->
+  <div class="step-h" id="software"><span class="step-n">4</span><h2>Install the sender software</h2></div>
+  <p>It's pure Python with a single dependency — no Ruby, no compilers, no proprietary tooling. Install
+  Python and the Modbus library, then grab the open-source Jumboshack sender:</p>
+  <pre><code><span class="c"># Python 3 + the Modbus library</span>
+sudo apt update &amp;&amp; sudo apt install -y python3 python3-pip
+pip3 install minimalmodbus
+
+<span class="c"># the open-source Jumboshack sender — read every line before you run it</span>
+git clone https://github.com/jumboshack/jumboshack-sender.git ~/jumboshack-sender
+cd ~/jumboshack-sender</code></pre>
+  <p>Smoke-test the wiring — read your unit once and print it:</p>
+  <pre><code>python3 fetch_modbus.py --unit 1</code></pre>
+  <p>If that prints your heat pump's temperatures instead of an error, your wiring is good and the hard
+  part is done. 🎉 The reader is the <b>same code we run on our own units</b> — native Python, read-only,
+  and validated field-for-field against the reference tooling.</p>
+
+  <!-- ─────────────────────────────  STEP 5  ───────────────────────────── -->
+  <div class="step-h" id="token"><span class="step-n">5</span><h2>Get your token, go live &amp; verify</h2></div>
+
+  <h3>a. Create a device token</h3>
+  <p>In your Jumboshack <a href="https://app.jumboshack.com/account">Account</a>, add a Location, then add a
+  Device. You'll see a one-time token that looks like <code>jsk_…</code> — copy it now; it's shown only
+  once. That token is what ties this Pi's data to your account.</p>
+
+  <h3>b. Point the sender at your account</h3>
+  <p>Drop your token and the ingest URL into <code>ingest.env</code> (it's gitignored — your token never
+  leaves the Pi):</p>
+  <pre><code><span class="c"># ~/jumboshack-sender/ingest.env</span>
+INGEST_TARGETS=cloud
+INGEST_URL_cloud=https://ingest.jumboshack.com/api/ingest/geothermal
+INGEST_TOKEN_cloud=jsk_your_device_token_here</code></pre>
+
+  <h3>c. Dry-run first</h3>
+  <p>Send one reading with <code>?validate=1</code> — it parses and checks your payload but stores nothing,
+  so you can confirm the plumbing before you commit:</p>
+  <pre><code>curl -X POST "https://ingest.jumboshack.com/api/ingest/geothermal?validate=1" \
+  -H "Authorization: Bearer jsk_your_device_token_here" \
+  -H "Content-Type: application/json" \
+  --data @sample-reading.json</code></pre>
+  <p>A <code>"valid": true</code> response means you're good. (Full payload shape and every accepted field
+  are in <a href="https://app.jumboshack.com/ingest-docs">the API guide</a>.)</p>
+
+  <h3>d. Schedule it every minute</h3>
+  <p>Run <code>crontab -e</code> and add:</p>
+  <pre><code>* * * * * /home/pi/jumboshack-sender/run.sh &gt; /home/pi/jumboshack-sender/lastrun.log 2>&1</code></pre>
+  <p>Within a minute, your <a href="https://app.jumboshack.com/">dashboard</a> lights up — live
+  temperatures, power, pressures, flow, and a schematic of your loop. From here, History and Cost fill in
+  on their own, day after day.</p>
+
+  <!-- PHOTO 3 — THE PAYOFF. Shot: the finished Pi + adapter tucked neatly beside the air handler
+       (cables dressed), ideally with a phone/laptop in frame showing the live Jumboshack dashboard
+       for that unit. Wide-ish, well lit — this is the "it works!" hero shot. -->
+  <div class="figph">[PHOTO] The finished sender tucked next to the air handler, with the dashboard going live</div>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><b>No <code>/dev/ttyUSB0</code>?</b> Re-seat the adapter; run <code>dmesg | tail</code> to see if it enumerated. Some adapters need the <code>ch341</code> or FTDI driver (usually built into Raspberry Pi OS).</li>
+    <li><b><code>fetch_modbus.py</code> errors or times out?</b> Almost always A/B swapped — try flipping the two data wires. Double-check GND and that the air handler is powered.</li>
+    <li><b><code>401</code> from the ingest API?</b> The token is wrong or truncated — re-copy it from Account (add a fresh device if it's lost, since it's shown only once).</li>
+    <li><b><code>429</code>?</b> You're pushing too fast. One reading every 15–60s is ideal; the rate limit is 120/min per device.</li>
+    <li><b>Readings arrive in bursts, or the dashboard goes stale then recovers?</b> Usually WiFi power-save napping the Pi's radio. Turn it off — <code>sudo iw dev wlan0 set power_save off</code> — and make it persistent (a small <code>@reboot</code> cron or a systemd service). For an always-on sensor, wired Ethernet — or locking the Pi to one strong nearby access point — is even more reliable.</li>
+  </ul>
+
+  <div class="band" style="margin:2.6rem 0 1rem">
+    <h2>Want the shortcut?</h2>
+    <p>Don't feel like sourcing parts? We're putting together pre-configured Jumboshack kits that stream out
+    of the box. Tell us about your setup and we'll get you sorted.</p>
+    <a class="btn lg" href="mailto:hello@jumboshack.com?subject=Jumboshack%20kit%20interest">Ask about a kit</a>
+  </div>
+
+</article>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand" style="font-size:1.1rem">🌡️ Jumboshack</div>
+        <p style="max-width:34ch;font-size:.9rem;margin:.5rem 0 0">Your home's systems, in one live dashboard.</p>
+      </div>
+      <nav>
+        <a href="build.html">Build guide</a>
+        <a href="https://app.jumboshack.com/login">Log in</a>
+        <a href="https://app.jumboshack.com/ingest-docs">API docs</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="mailto:hello@jumboshack.com">Contact</a>
+      </nav>
+    </div>
+    <p class="fine">
+      © 2026 Jumboshack. All rights reserved. Some links on this page are affiliate links. Jumboshack is an
+      independent product and is not affiliated with, endorsed by, or sponsored by WaterFurnace, Raspberry Pi,
+      or any other manufacturer; product names and trademarks belong to their respective owners.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
