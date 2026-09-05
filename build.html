@@ -32,6 +32,12 @@ pre .c{color:#5b8a72}
 .guide code{font-family:var(--mono);background:#eef4f1;padding:.12rem .35rem;border-radius:5px;font-size:.88em}
 pre code{background:none;padding:0;color:inherit;font-size:1em}
 .figph{display:flex;align-items:center;justify-content:center;text-align:center;background:repeating-linear-gradient(45deg,#f4f8f6,#f4f8f6 12px,#eef4f1 12px,#eef4f1 24px);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:.9rem;min-height:170px;margin:1rem 0;padding:1rem}
+.fig{margin:1.3rem 0}
+.fig img{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--border);image-orientation:from-image}
+.fig figcaption{font-size:.82rem;color:var(--muted);margin-top:.45rem;text-align:center}
+.fig-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.fig-row figcaption{margin-top:.35rem}
+@media(max-width:560px){.fig-row{grid-template-columns:1fr}}
 .step-h{display:flex;align-items:center;gap:.7rem;margin:2rem 0 .3rem}
 .step-n{flex:0 0 auto;width:2rem;height:2rem;border-radius:50%;background:var(--green);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 .step-h h2{margin:0;padding:0;border:0}
@@ -57,15 +63,6 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
 
 <article class="guide">
 
-  <!-- ============================================================
-       DRAFT — remove this callout before linking from the homepage.
-       Only remaining TODO: replace the two [PHOTO] placeholders with
-       real build photos (see the PHOTO comments at each figure).
-       Wiring/pinout diagram is done; sender repo: github.com/jumboshack/jumboshack-sender
-       ============================================================ -->
-  <div class="callout draft">
-    <b>Draft — internal.</b> Ready to publish once the two build <code>[PHOTO]</code>s are dropped in.
-  </div>
 
   <span class="eyebrow">Build guide</span>
   <h1>Build a Jumboshack sender</h1>
@@ -254,10 +251,20 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
     control board. Only the four data wires above go to the adapter.
   </div>
 
-  <!-- PHOTO 2 — WIRING CLOSE-UP. Shot: the RS-485 adapter's screw terminals with the two twisted pairs
-       landed & screwed down (white-orange + white-green on A; orange + blue on B), and the Ethernet cable's
-       cut end plus the AID Tool RJ-45 plugged into the heat pump both in frame. Macro, good light. -->
-  <div class="figph">[PHOTO] Close-up: the adapter's A / B terminals with the two twisted pairs landed, and the Ethernet cable plugged into the Aurora's AID Tool port</div>
+  <figure class="fig">
+    <img src="images/wiring-pinout.jpg" alt="DSD TECH USB-RS485 adapter showing its printed pinout — 1 A+, 2 B-, 5 GND — with the made cable's twisted pair landed in the terminals">
+    <figcaption>The DSD TECH adapter's own printed key: <b>terminal 1 = A+</b>, <b>2 = B−</b>, <b>5 = GND</b>. Land the two twisted data pairs on 1 and 2.</figcaption>
+  </figure>
+  <div class="fig-row">
+    <figure class="fig">
+      <img src="images/cable-landed.jpg" alt="Close-up of the two twisted pairs from the Ethernet cable screwed into the adapter's green terminal block">
+      <figcaption>Twisted pairs seated in the green screw terminals.</figcaption>
+    </figure>
+    <figure class="fig">
+      <img src="images/adapter-installed.jpg" alt="The adapter mounted by the air handler, cable landed, USB running to the CanaKit PiSwitch">
+      <figcaption>Mounted by the air handler, USB to the PiSwitch.</figcaption>
+    </figure>
+  </div>
 
   <div class="callout">
     <b>Boards vary slightly.</b> If your AID port or adapter is labeled differently, the rule is the same:
@@ -318,10 +325,10 @@ INGEST_TOKEN_cloud=jsk_your_device_token_here</code></pre>
   temperatures, power, pressures, flow, and a schematic of your loop. From here, History and Cost fill in
   on their own, day after day.</p>
 
-  <!-- PHOTO 3 — THE PAYOFF. Shot: the finished Pi + adapter tucked neatly beside the air handler
-       (cables dressed), ideally with a phone/laptop in frame showing the live Jumboshack dashboard
-       for that unit. Wide-ish, well lit — this is the "it works!" hero shot. -->
-  <div class="figph">[PHOTO] The finished sender tucked next to the air handler, with the dashboard going live</div>
+  <figure class="fig">
+    <img src="images/system-build.jpg" alt="The finished Jumboshack sender: WaterFurnace Aurora control, Raspberry Pi, the DSD TECH RS-485 adapter lit up, the Ethernet tap cable, and the PiSwitch, all in place by the air handler">
+    <figcaption>The finished sender in place — Aurora control, Pi, RS-485 adapter (green LED lit), the Ethernet tap, and the PiSwitch — quietly streaming to your dashboard.</figcaption>
+  </figure>
 
   <h2>Troubleshooting</h2>
   <ul>
