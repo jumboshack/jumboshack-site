@@ -44,6 +44,11 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
 .tocard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin:1.4rem 0}
 .tocard ol{margin:.4rem 0 0;padding-left:1.2rem}
 .disclose{font-size:.82rem;color:var(--muted);font-style:italic;margin:.3rem 0 0}
+.buildmine{background:linear-gradient(180deg,#eefaf3,#e2f5e9);border:1px solid var(--green);border-left:4px solid var(--green);border-radius:14px;padding:1.1rem 1.3rem;margin:1.5rem 0}
+.buildmine h3{margin:.1rem 0 .5rem;font-size:1.15rem;border:0;padding:0}
+.buildmine ul{margin:.5rem 0;padding-left:1.2rem}
+.buildmine .price{font-size:1.05rem;margin:.5rem 0 .2rem}
+.buildmine .btn{margin-top:.6rem}
 </style>
 </head>
 <body>
@@ -71,8 +76,22 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
   Jumboshack dashboard. No soldering, no cloud middleman, and your data stays yours.</p>
   <div class="meta">
     <span>⏱️ <b>~2 hours</b> start to finish</span>
-    <span>🧰 <b>~$60</b> in parts</span>
+    <span>🧰 <b>from ~$60</b> all-in</span>
     <span>🛠️ <b>Beginner-friendly</b> — if you can flash an SD card, you can do this</span>
+  </div>
+
+  <div class="buildmine">
+    <h3>💡 You don't need an expensive Pi — that's the point</h3>
+    <p>Jumboshack's sender is <b>pure Python</b>, written to run happily on the smallest, cheapest
+    <b>Wi-Fi</b> Raspberry Pis. A <b>Pi Zero 2 W</b> (or the original Zero W we run) sips power and costs a
+    fraction of a performance board — no $130 Pi 5 required. Here's the exact setup we run:</p>
+    <ul>
+      <li>CanaKit Pi Zero W / Zero 2 W kit — microSD, power supply &amp; case included — <b>~$40–45</b></li>
+      <li>FTDI USB-to-RS485 adapter — <b>~$12</b></li>
+      <li>Short Cat5e cable to tap the AID Tool port — <b>~$5</b></li>
+    </ul>
+    <p class="price"><b>≈ $60 all-in</b> — versus ~$150 for a Pi 5 kit you don't need for this.</p>
+    <a class="btn" href="#parts">Build my setup →</a>
   </div>
 
   <div class="tocard">
@@ -88,8 +107,8 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
 
   <h2>How it fits together</h2>
   <p>Two small pieces do the work. A USB-to-RS485 adapter gives the Pi a wire into your heat pump's
-  Modbus bus, and a small <b>pure-Python</b> reader pulls the registers and streams each reading to
-  Jumboshack over HTTPS:</p>
+  Modbus bus, and a small <b>pure-Python</b> reader — light enough to run on a $15 Pi Zero 2 W over
+  Wi-Fi — pulls the registers and streams each reading to Jumboshack over HTTPS:</p>
   <pre><code>  WaterFurnace Aurora ──(RS-485 / Modbus)── USB adapter ── Raspberry Pi
                                                               │
                                     fetch_modbus.py (native Python) → push (HTTPS)
