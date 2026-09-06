@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Stream your air quality into Jumboshack — Airthings setup guide</title>
+<meta name="description" content="Add a WiFi Airthings monitor and stream radon, CO₂, VOCs, PM and humidity into your Jumboshack dashboard. No hardware to build — API access plus one small container, in about 20 minutes.">
+<meta property="og:title" content="Stream your air quality into Jumboshack">
+<meta property="og:description" content="Add a WiFi Airthings monitor and stream radon, CO₂, VOCs, PM and humidity into Jumboshack. API access + one container, ~20 minutes.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<style>
+/* build-guide-specific styles (shared with build.html) */
+.guide{max-width:var(--readw);margin:0 auto;padding:2.5rem 1.2rem 1rem}
+.guide h2{font-size:1.4rem;margin:2.4rem 0 .6rem;padding-top:1.4rem;border-top:1px solid var(--border)}
+.guide h3{font-size:1.1rem;margin:1.4rem 0 .4rem}
+.guide p,.guide li{color:#2b352f}
+.guide .lead{font-size:1.15rem;color:var(--muted)}
+.meta{display:flex;gap:1.4rem;flex-wrap:wrap;color:var(--muted);font-size:.9rem;margin:.6rem 0 0}
+.meta b{color:var(--ink)}
+.callout{background:var(--soft);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:.9rem 1.1rem;margin:1.1rem 0;font-size:.95rem}
+.callout.warn{border-left-color:#c96;background:#fdf7ee}
+.parts{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+.parts th,.parts td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--border);vertical-align:top}
+.parts th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.parts td.why{color:var(--muted)}
+pre{background:var(--soft);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.55}
+pre .c{color:#5b8a72}
+.guide code{font-family:var(--mono);background:#eef4f1;padding:.12rem .35rem;border-radius:5px;font-size:.88em}
+pre code{background:none;padding:0;color:inherit;font-size:1em}
+.step-h{display:flex;align-items:center;gap:.7rem;margin:2rem 0 .3rem}
+.step-n{flex:0 0 auto;width:2rem;height:2rem;border-radius:50%;background:var(--green);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.step-h h2{margin:0;padding:0;border:0}
+.tocard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin:1.4rem 0}
+.tocard ol{margin:.4rem 0 0;padding-left:1.2rem}
+.disclose{font-size:.82rem;color:var(--muted);font-style:italic;margin:.3rem 0 0}
+.buildmine{background:linear-gradient(180deg,#eefaf3,#e2f5e9);border:1px solid var(--green);border-left:4px solid var(--green);border-radius:14px;padding:1.1rem 1.3rem;margin:1.5rem 0}
+.buildmine h3{margin:.1rem 0 .5rem;font-size:1.15rem;border:0;padding:0}
+.buildmine ul{margin:.5rem 0;padding-left:1.2rem}
+.buildmine .btn{margin-top:.6rem}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">🌡️ Jumboshack</a>
+    <nav>
+      <a href="index.html#features" class="hide-sm">Features</a>
+      <a href="build.html" class="hide-sm">Build guide</a>
+      <a href="https://app.jumboshack.com/ingest-docs" class="hide-sm">API</a>
+      <a href="https://app.jumboshack.com/login">Log in</a>
+      <a class="btn" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+    </nav>
+  </div>
+</header>
+
+<article class="guide">
+
+  <span class="eyebrow">Setup guide</span>
+  <h1>Stream your air quality into Jumboshack</h1>
+  <p class="lead">Add a WiFi <b>Airthings</b> monitor and watch radon, CO₂, VOCs, particulates and humidity
+  land on your Jumboshack dashboard — right alongside your heat pump. There's nothing to build: Airthings
+  does the sensing, and one tiny sender relays your readings over your account's API. About 20 minutes,
+  most of it clicking through the Airthings dashboard.</p>
+  <div class="meta">
+    <span>⏱️ <b>~20 minutes</b> (plus buying the monitor)</span>
+    <span>🧰 <b>A WiFi Airthings + any always-on computer</b></span>
+    <span>🛠️ <b>Beginner-friendly</b> — no wiring, no soldering</span>
+  </div>
+
+  <div class="callout warn">
+    <b>It must be a WiFi Airthings.</b> Jumboshack reads your data through the Airthings <em>cloud API</em>,
+    so the monitor has to report to your Airthings account over WiFi — a <b>View Plus</b>, <b>View Radon</b>,
+    <b>View Pollution</b>, or a <b>Wave</b>-series device paired with an Airthings <b>Hub</b>. Bluetooth-only
+    units (like the Corentium Home) never reach the cloud and <b>can't</b> be used here.
+  </div>
+
+  <div class="tocard">
+    <b>The four steps</b>
+    <ol>
+      <li><a href="#buy">Get a compatible monitor</a></li>
+      <li><a href="#api">Turn on Airthings API access</a></li>
+      <li><a href="#device">Create a Jumboshack device token</a></li>
+      <li><a href="#run">Run the sender &amp; verify</a></li>
+    </ol>
+  </div>
+
+  <h2>How it fits together</h2>
+  <p>Your Airthings monitor already uploads to Airthings' cloud. A small <b>pure-Python</b> sender — light
+  enough to run on a $15 Pi or as a container on your NAS — signs into that cloud with your API key, grabs
+  each room's latest reading every few minutes, and POSTs it to Jumboshack over HTTPS:</p>
+  <pre><code>  Airthings monitor ──(WiFi)──► Airthings cloud
+                                      │
+                       airthings-sender  (reads the API, POSTs over HTTPS)
+                                      │
+                          ingest.jumboshack.com → your dashboard</code></pre>
+  <p>It's <em>read-only</em> — it only ever reads your Airthings data; it changes nothing on your account or
+  device. Readings are keyed by their own timestamp, so a missed cycle simply backfills on the next one, and
+  a network blip never costs you data.</p>
+
+  <!-- ─────────────────────────────  STEP 1  ───────────────────────────── -->
+  <div class="step-h" id="buy"><span class="step-n">1</span><h2>Get a compatible monitor</h2></div>
+  <p>Any WiFi Airthings works. These are the two we point people to — the View Plus for the full picture, the
+  View Radon if radon is your main concern.</p>
+  <table class="parts">
+    <thead><tr><th>Monitor</th><th>What it measures</th><th>~Price</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B097YW5Q72?tag=castaway0b-20">Airthings View Plus</a> <b>★ the full picture</b></td>
+        <td class="why">Radon, CO₂, VOCs, PM2.5 particulates, humidity, temperature and pressure — the most complete single-unit air-quality monitor, and everything Jumboshack charts.</td>
+        <td>on Amazon</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/dp/B09SQ64K7Q?tag=castaway0b-20">Airthings View Radon</a></td>
+        <td class="why">WiFi radon monitoring (plus temperature and humidity) at a lower price — great if radon is the number you care about.</td>
+        <td>on Amazon</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Set the monitor up in the Airthings app first and confirm it's reporting to your account over WiFi.
+  Give it a little time to take its first readings.</p>
+  <p class="disclose"><b>As an Amazon Associate, Jumboshack earns from qualifying purchases.</b> The monitor
+  links above are affiliate links — if you buy through them we may earn a small commission at no extra cost
+  to you. We only list gear we actually use.</p>
+
+  <!-- ─────────────────────────────  STEP 2  ───────────────────────────── -->
+  <div class="step-h" id="api"><span class="step-n">2</span><h2>Turn on Airthings API access</h2></div>
+  <p>Jumboshack reads your data through Airthings' own API, so you'll create an API client and copy three
+  values. This lives in the Airthings <b>web</b> dashboard, not the phone app.</p>
+  <ol>
+    <li>Sign in at <a href="https://dashboard.airthings.com">dashboard.airthings.com</a>.</li>
+    <li>Go to <b>Integrations → API</b> and <b>create an API client</b>. Choose the
+      <b>client-credentials</b> type and grant the scope <code>read:device:current_values</code>.</li>
+    <li>Copy your <b>Client ID</b> and <b>Client Secret</b> (the secret is shown once — save it now).</li>
+    <li>Note your <b>Account ID</b> (shown in the API / account area).</li>
+  </ol>
+  <div class="callout"><b>Read-only by design.</b> That single scope only lets the sender read current
+  values — it can't change settings or control your device. Your keys stay on the machine you run the sender
+  on; they never come to Jumboshack.</div>
+
+  <!-- ─────────────────────────────  STEP 3  ───────────────────────────── -->
+  <div class="step-h" id="device"><span class="step-n">3</span><h2>Create a Jumboshack device token</h2></div>
+  <p>In your Jumboshack <a href="https://app.jumboshack.com/account">Account</a>, add a Location if you don't
+  have one, then <b>add a Device</b> and set its module to <b>air quality</b>. You'll get a one-time token
+  that looks like <code>jsk_…</code> — <b>copy it now</b>; it's shown only once. That token ties your
+  Airthings readings to your account (one device represents your whole Airthings account; each monitor shows
+  up as its own room).</p>
+
+  <!-- ─────────────────────────────  STEP 4  ───────────────────────────── -->
+  <div class="step-h" id="run"><span class="step-n">4</span><h2>Run the sender &amp; verify</h2></div>
+  <p>The sender is open-source, pure Python, with <b>no dependencies</b> — run it with Docker on any
+  always-on box (a spare Raspberry Pi, a mini-PC, or a container on your NAS).</p>
+  <pre><code><span class="c"># grab the sender</span>
+git clone https://github.com/jumboshack/jumboshack-sender.git
+cd jumboshack-sender/docker/airthings-sender
+
+<span class="c"># fill in your five values</span>
+cp .env.example .env
+nano .env</code></pre>
+  <p>Your <code>.env</code> holds the three Airthings values plus your Jumboshack device token — it's
+  gitignored, so nothing leaves your machine:</p>
+  <pre><code><span class="c"># .env</span>
+AIRTHINGS_CLIENT_ID=your_client_id
+AIRTHINGS_CLIENT_SECRET=your_client_secret
+AIRTHINGS_ACCOUNT_ID=your_account_id
+INGEST_TOKEN=jsk_your_device_token_here</code></pre>
+
+  <h3>Dry-run first</h3>
+  <p>Do a validation run — it fetches from Airthings and checks the payload against the server but
+  <b>stores nothing</b>, so you can confirm the plumbing before going live:</p>
+  <pre><code>docker build -t airthings-sender .
+docker run --rm --env-file .env -e VALIDATE=1 airthings-sender</code></pre>
+  <p>A line like <code>dry run OK ✓</code> with a room count means you're good.</p>
+
+  <h3>Go live</h3>
+  <p>Start it in the background — it streams every five minutes and restarts with your machine:</p>
+  <pre><code>docker compose up -d
+<span class="c"># (or)  docker run -d --restart unless-stopped --name airthings-sender --env-file .env airthings-sender</span></code></pre>
+  <p>Within a few minutes, open <a href="https://app.jumboshack.com/air">Air Quality ▸ Now</a> — each
+  monitor appears as a room with its radon, CO₂, VOC, PM and humidity, and <b>Trends</b> and <b>History</b>
+  fill in from there.</p>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><b>Dry run says <code>401</code>/<code>403</code>?</b> The Jumboshack token is wrong or the device
+      isn't set to the <b>air quality</b> module — re-copy the token from Account (add a fresh device if it's
+      lost, since it's shown once).</li>
+    <li><b>Airthings login fails?</b> Double-check the Client ID/Secret and that the API client has the
+      <code>read:device:current_values</code> scope. Regenerate the secret if you didn't save it.</li>
+    <li><b>“no readings from Airthings”?</b> Make sure the monitor is online in the Airthings app and has
+      taken readings. A brand-new device can take a little while for its first values.</li>
+    <li><b>Rooms grouped oddly by floor?</b> Set <code>FLOOR_MAP_JSON</code> in <code>.env</code> to label and
+      order them, e.g. <code>{"2960123636":["Main Floor",2]}</code>.</li>
+    <li><b>Bluetooth-only device?</b> A Corentium Home (or any non-WiFi unit) can't reach the cloud API and
+      won't work — you'd need a WiFi View, or a Wave paired with a Hub.</li>
+  </ul>
+
+  <div class="callout">
+    <b>Also tracking your heat pump?</b> The geothermal <a href="build.html">build guide</a> streams your
+    WaterFurnace into the same dashboard. And Jumboshack takes data from <em>anything</em> that can POST JSON
+    — see <a href="https://app.jumboshack.com/ingest-docs">the API guide</a>.
+  </div>
+
+  <div class="band" style="margin:2.6rem 0 1rem">
+    <h2>Questions?</h2>
+    <p>Stuck on the Airthings API, or want us to look at your setup? We're happy to help you get streaming.</p>
+    <a class="btn lg" href="mailto:hello@jumboshack.com?subject=Jumboshack%20air-quality%20setup">Get in touch</a>
+  </div>
+
+</article>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand" style="font-size:1.1rem">🌡️ Jumboshack</div>
+        <p style="max-width:34ch;font-size:.9rem;margin:.5rem 0 0">Your home's systems, in one live dashboard.</p>
+      </div>
+      <nav>
+        <a href="build.html">Build guide</a>
+        <a href="air-build.html">Air-quality guide</a>
+        <a href="https://app.jumboshack.com/login">Log in</a>
+        <a href="https://app.jumboshack.com/ingest-docs">API docs</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="mailto:hello@jumboshack.com">Contact</a>
+      </nav>
+    </div>
+    <p class="fine">
+      © 2026 Jumboshack. All rights reserved. Some links on this page are affiliate links. Jumboshack is an
+      independent product and is not affiliated with, endorsed by, or sponsored by Airthings, Raspberry Pi,
+      or any other manufacturer; product names and trademarks belong to their respective owners.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
