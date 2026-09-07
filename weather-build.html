@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Stream your weather station into Jumboshack — setup guide</title>
+<meta name="description" content="Send temperature, wind, rain, pressure and humidity from a WiFi weather station (Ambient, Ecowitt, Tempest) into your Jumboshack dashboard via the Custom endpoint. No new hardware to build.">
+<meta property="og:title" content="Stream your weather station into Jumboshack">
+<meta property="og:description" content="Push a WiFi weather station's readings into Jumboshack via the Custom API — temp, wind, rain, pressure, humidity.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<style>
+/* build-guide-specific styles (shared with build.html / air-build.html) */
+.guide{max-width:var(--readw);margin:0 auto;padding:2.5rem 1.2rem 1rem}
+.guide h2{font-size:1.4rem;margin:2.4rem 0 .6rem;padding-top:1.4rem;border-top:1px solid var(--border)}
+.guide h3{font-size:1.1rem;margin:1.4rem 0 .4rem}
+.guide p,.guide li{color:#2b352f}
+.guide .lead{font-size:1.15rem;color:var(--muted)}
+.meta{display:flex;gap:1.4rem;flex-wrap:wrap;color:var(--muted);font-size:.9rem;margin:.6rem 0 0}
+.meta b{color:var(--ink)}
+.callout{background:var(--soft);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:.9rem 1.1rem;margin:1.1rem 0;font-size:.95rem}
+.callout.warn{border-left-color:#c96;background:#fdf7ee}
+.parts{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+.parts th,.parts td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--border);vertical-align:top}
+.parts th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.parts td.why{color:var(--muted)}
+pre{background:var(--soft);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.55}
+pre .c{color:#5b8a72}
+.guide code{font-family:var(--mono);background:#eef4f1;padding:.12rem .35rem;border-radius:5px;font-size:.88em}
+pre code{background:none;padding:0;color:inherit;font-size:1em}
+.step-h{display:flex;align-items:center;gap:.7rem;margin:2rem 0 .3rem}
+.step-n{flex:0 0 auto;width:2rem;height:2rem;border-radius:50%;background:var(--green);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.step-h h2{margin:0;padding:0;border:0}
+.tocard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin:1.4rem 0}
+.tocard ol{margin:.4rem 0 0;padding-left:1.2rem}
+.disclose{font-size:.82rem;color:var(--muted);font-style:italic;margin:.3rem 0 0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">🌡️ Jumboshack</a>
+    <nav>
+      <a href="index.html#features" class="hide-sm">Features</a>
+      <a href="build.html" class="hide-sm">Build guide</a>
+      <a href="https://app.jumboshack.com/ingest-docs" class="hide-sm">API</a>
+      <a href="https://app.jumboshack.com/login">Log in</a>
+      <a class="btn" href="mailto:hello@jumboshack.com?subject=Jumboshack%20access%20request">Request access</a>
+    </nav>
+  </div>
+</header>
+
+<article class="guide">
+
+  <span class="eyebrow">Setup guide</span>
+  <h1>Stream your weather station into Jumboshack</h1>
+  <p class="lead">Push your backyard weather station — temperature, wind, rain, pressure, humidity —
+  into your Jumboshack dashboard. It rides the same <b>Custom</b> endpoint anything can post to, so
+  there's no special weather hardware or new software to build: a tiny relay reads your station and
+  forwards the numbers. About 20 minutes.</p>
+  <div class="meta">
+    <span>⏱️ <b>~20 minutes</b></span>
+    <span>🧰 <b>A WiFi weather station + any always-on computer</b></span>
+    <span>🛠️ <b>Beginner-friendly</b> — a short copy-paste script</span>
+  </div>
+
+  <div class="callout">
+    <b>How it works:</b> weather stations report to a cloud API (Ambient Weather, Ecowitt) or a local
+    gateway. A small relay reads those numbers every few minutes and POSTs them to your Jumboshack
+    <b>Custom</b> device — where they auto-render as cards + trend charts. Nothing is written back to
+    your station; it's read-only.
+  </div>
+
+  <div class="tocard">
+    <b>The four steps</b>
+    <ol>
+      <li><a href="#buy">Get a WiFi weather station</a></li>
+      <li><a href="#token">Create a Jumboshack Custom device</a></li>
+      <li><a href="#relay">Run the relay</a></li>
+      <li><a href="#verify">Verify &amp; label</a></li>
+    </ol>
+  </div>
+
+  <h2>How it fits together</h2>
+  <pre><code>  Weather station ──(WiFi)──► vendor cloud / local gateway
+                                      │
+                        weather relay  (reads the API, POSTs over HTTPS)
+                                      │
+                          ingest.jumboshack.com/api/ingest/custom → your dashboard</code></pre>
+
+  <!-- ─────────────────────────────  STEP 1  ───────────────────────────── -->
+  <div class="step-h" id="buy"><span class="step-n">1</span><h2>Get a WiFi weather station</h2></div>
+  <p>Any station with a cloud API or a local network gateway works. The common, well-documented ones:</p>
+  <table class="parts">
+    <thead><tr><th>Station</th><th>How you read it</th><th>Price</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=ambient+weather+station+ws-2902&tag=castaway0b-20" target="_blank" rel="noopener">Ambient Weather (WS-2902 etc.)</a></td>
+        <td class="why">Simple REST API (application key + API key). Temp, wind, rain, pressure, humidity, UV, solar.</td>
+        <td>on Amazon</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=ecowitt+weather+station+gateway&tag=castaway0b-20" target="_blank" rel="noopener">Ecowitt (GW1100 / GW2000 gateways)</a></td>
+        <td class="why">Local network API on the gateway <em>and</em> an Ecowitt cloud API — no cloud dependency if you use local.</td>
+        <td>on Amazon</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.amazon.com/s?k=tempest+weather+system+weatherflow&tag=castaway0b-20" target="_blank" rel="noopener">WeatherFlow Tempest</a></td>
+        <td class="why">REST + UDP local broadcast. Sonic wind, haptic rain, lightning.</td>
+        <td>on Amazon</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="disclose"><b>As an Amazon Associate, Jumboshack earns from qualifying purchases.</b> The links
+  above are affiliate search links — if you buy through them we may earn a small commission at no extra
+  cost to you. Prices are shown on the live listing.</p>
+
+  <!-- ─────────────────────────────  STEP 2  ───────────────────────────── -->
+  <div class="step-h" id="token"><span class="step-n">2</span><h2>Create a Jumboshack Custom device</h2></div>
+  <p>In your <a href="https://app.jumboshack.com/account">Account</a>, add a Location if needed, then
+  <b>add a Device</b> and set its module to <b>custom</b>. Copy the one-time token (<code>jsk_…</code>).
+  That token ties your weather readings to your account, and they'll appear on the <b>Custom</b> tab
+  (which you can rename to “Weather” — double-click the tab, or Account → Navigation tabs).</p>
+
+  <!-- ─────────────────────────────  STEP 3  ───────────────────────────── -->
+  <div class="step-h" id="relay"><span class="step-n">3</span><h2>Run the relay</h2></div>
+  <p>A small script reads your station and POSTs a <code>metrics</code> map to
+  <code>/api/ingest/custom</code> every few minutes. Here it is for <b>Ambient Weather</b> (pure Python,
+  no dependencies) — schedule it from <code>cron</code> on any always-on box:</p>
+  <pre><code><span class="c"># weather-relay.py — Ambient Weather → Jumboshack Custom</span>
+import json, urllib.request
+from datetime import datetime, timezone
+
+AMBIENT_APP_KEY = "your_application_key"   <span class="c"># dashboard.ambientweather.net → API keys</span>
+AMBIENT_API_KEY = "your_api_key"
+JUMBO_TOKEN     = "jsk_your_custom_device_token"
+
+url = f"https://api.ambientweather.net/v1/devices?applicationKey={AMBIENT_APP_KEY}&apiKey={AMBIENT_API_KEY}"
+d = json.load(urllib.request.urlopen(url, timeout=15))[0]["lastData"]
+
+<span class="c"># map the station's fields to clean metric names (see naming tips below)</span>
+metrics = {}
+for src, dst in (("tempf","temp_f"), ("humidity","humidity_pct"), ("windspeedmph","wind_mph"),
+                 ("windgustmph","gust_mph"), ("hourlyrainin","rain_in"), ("baromrelin","pressure_inhg"),
+                 ("uv","uv"), ("solarradiation","solar_wm2")):
+    if d.get(src) is not None:
+        metrics[dst] = float(d[src])
+
+body = json.dumps({"metadata": {"time": datetime.now(timezone.utc).isoformat(),
+                                "software_version": "weather-relay/1.0"},
+                   "metrics": metrics}).encode()
+req = urllib.request.Request("https://ingest.jumboshack.com/api/ingest/custom", data=body,
+        method="POST", headers={"Authorization": f"Bearer {JUMBO_TOKEN}",
+                                "Content-Type": "application/json"})
+print(urllib.request.urlopen(req, timeout=20).read().decode())</code></pre>
+  <p>Test it once, then schedule every 5 minutes:</p>
+  <pre><code><span class="c"># dry run first — validates + echoes what was understood, stores nothing</span>
+<span class="c"># (add ?validate=1 to the URL in the script, run once, then remove it)</span>
+
+crontab -e
+*/5 * * * * /usr/bin/python3 /home/pi/weather-relay.py &gt; /home/pi/weather.log 2>&1</code></pre>
+  <div class="callout">
+    <b>Other stations, same idea.</b> <b>Ecowitt:</b> read the local gateway API
+    (<code>http://&lt;gateway-ip&gt;/get_livedata_info</code>) or the Ecowitt cloud API and map the fields
+    the same way. <b>Tempest:</b> use the WeatherFlow REST API. <b>Home Assistant users:</b> if your
+    station is already in HA, a REST-command automation can POST the same <code>metrics</code> JSON to
+    <code>/api/ingest/custom</code> on a timer — no separate script.
+  </div>
+
+  <!-- ─────────────────────────────  STEP 4  ───────────────────────────── -->
+  <div class="step-h" id="verify"><span class="step-n">4</span><h2>Verify &amp; label</h2></div>
+  <p>Within a few minutes, open <a href="https://app.jumboshack.com/custom">your Custom tab</a> — each
+  metric shows as a card with a hover trend (daily high/low/avg). Rename the tab to “Weather”
+  (double-click it) if you like.</p>
+  <h3>Metric-naming tips (so it auto-formats)</h3>
+  <ul>
+    <li><code>temp_f</code> → shows <b>°F</b>; <code>humidity_pct</code> → <b>%</b> — these format automatically.</li>
+    <li><code>wind_mph</code>, <code>gust_mph</code>, <code>rain_in</code>, <code>pressure_inhg</code>,
+      <code>uv</code>, <code>solar_wm2</code> show as plain numbers — set a unit label (mph, in, inHg, W/m²)
+      with the <b>✎</b> on each card, once.</li>
+    <li>Only numeric values are stored; send whatever your station reports. Full format: the
+      <a href="https://app.jumboshack.com/ingest-docs">API guide</a> (“Custom — any numbers you want”).</li>
+  </ul>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><b><code>401</code>?</b> Wrong token, or the device isn't set to the <b>custom</b> module — re-copy from Account.</li>
+    <li><b>Ambient API empty?</b> Give it a minute after generating keys; make sure the station is online in the Ambient app.</li>
+    <li><b>Nothing on the Custom tab?</b> Run the script by hand and check the response is <code>{"ok":true,…}</code>; confirm the station is reporting.</li>
+  </ul>
+
+  <div class="callout">
+    <b>Also tracking geothermal or air quality?</b> The <a href="build.html">geothermal</a> and
+    <a href="air-build.html">air-quality</a> guides stream those into the same dashboard. Jumboshack takes
+    data from <em>anything</em> that can POST JSON — see the <a href="https://app.jumboshack.com/ingest-docs">API guide</a>.
+  </div>
+
+</article>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand" style="font-size:1.1rem">🌡️ Jumboshack</div>
+        <p style="max-width:34ch;font-size:.9rem;margin:.5rem 0 0">Your home's systems, in one live dashboard.</p>
+      </div>
+      <nav>
+        <a href="build.html">Build guide</a>
+        <a href="air-build.html">Air-quality guide</a>
+        <a href="weather-build.html">Weather guide</a>
+        <a href="https://app.jumboshack.com/login">Log in</a>
+        <a href="https://app.jumboshack.com/ingest-docs">API docs</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="mailto:hello@jumboshack.com">Contact</a>
+      </nav>
+    </div>
+    <p class="fine">
+      © 2026 Jumboshack. All rights reserved. Some links on this page are affiliate links. Jumboshack is an
+      independent product and is not affiliated with, endorsed by, or sponsored by Ambient Weather, Ecowitt,
+      WeatherFlow, or any other manufacturer; product names and trademarks belong to their respective owners.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
