@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>Stream your weather station into Jumboshack — setup guide</title>
-<meta name="description" content="Send temperature, wind, rain, pressure and humidity from a WiFi weather station (Ambient, Ecowitt, Tempest) into your Jumboshack dashboard via the Custom endpoint. No new hardware to build.">
+<meta name="description" content="Send temperature, wind, rain, pressure and humidity from a WiFi weather station (Ambient, Ecowitt, Tempest) into your Jumboshack dashboard via a simple API. No new hardware to build.">
 <meta property="og:title" content="Stream your weather station into Jumboshack">
-<meta property="og:description" content="Push a WiFi weather station's readings into Jumboshack via the Custom API — temp, wind, rain, pressure, humidity.">
+<meta property="og:description" content="Push a WiFi weather station's readings into Jumboshack via a simple API — temp, wind, rain, pressure, humidity.">
 <meta property="og:type" content="article">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
 <link rel="stylesheet" href="style.css">
@@ -58,7 +58,7 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
   <span class="eyebrow">Setup guide</span>
   <h1>Stream your weather station into Jumboshack</h1>
   <p class="lead">Push your backyard weather station — temperature, wind, rain, pressure, humidity —
-  into your Jumboshack dashboard. It rides the same <b>Custom</b> endpoint anything can post to, so
+  into your Jumboshack dashboard. It posts to your account over a simple HTTPS API, so
   there's no special weather hardware or new software to build: a tiny relay reads your station and
   forwards the numbers. About 20 minutes.</p>
   <div class="meta">
@@ -70,7 +70,7 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
   <div class="callout">
     <b>How it works:</b> weather stations report to a cloud API (Ambient Weather, Ecowitt) or a local
     gateway. A small relay reads those numbers every few minutes and POSTs them to your Jumboshack
-    <b>Custom</b> device — where they auto-render as cards + trend charts. Nothing is written back to
+    <b>Weather</b> device — where they auto-render as cards + trend charts. Nothing is written back to
     your station; it's read-only.
   </div>
 
@@ -78,7 +78,7 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
     <b>The four steps</b>
     <ol>
       <li><a href="#buy">Get a WiFi weather station</a></li>
-      <li><a href="#token">Create a Jumboshack Custom device</a></li>
+      <li><a href="#token">Create a Jumboshack Weather device</a></li>
       <li><a href="#relay">Run the relay</a></li>
       <li><a href="#verify">Verify &amp; label</a></li>
     </ol>
@@ -89,7 +89,7 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
                                       │
                         weather relay  (reads the API, POSTs over HTTPS)
                                       │
-                          ingest.jumboshack.com/api/ingest/custom → your dashboard</code></pre>
+                          ingest.jumboshack.com/api/ingest/weather → your dashboard</code></pre>
 
   <!-- ─────────────────────────────  STEP 1  ───────────────────────────── -->
   <div class="step-h" id="buy"><span class="step-n">1</span><h2>Get a WiFi weather station</h2></div>
@@ -119,42 +119,39 @@ pre code{background:none;padding:0;color:inherit;font-size:1em}
   cost to you. Prices are shown on the live listing.</p>
 
   <!-- ─────────────────────────────  STEP 2  ───────────────────────────── -->
-  <div class="step-h" id="token"><span class="step-n">2</span><h2>Create a Jumboshack Custom device</h2></div>
+  <div class="step-h" id="token"><span class="step-n">2</span><h2>Create a Jumboshack Weather device</h2></div>
   <p>In your <a href="https://app.jumboshack.com/account">Account</a>, add a Location if needed, then
-  <b>add a Device</b> and set its module to <b>custom</b>. Copy the one-time token (<code>jsk_…</code>).
-  That token ties your weather readings to your account, and they'll appear on the <b>Custom</b> tab
-  (which you can rename to “Weather” — double-click the tab, or Account → Navigation tabs).</p>
+  <b>add a Device</b> and set its module to <b>weather</b>. Copy the one-time token (<code>jsk_…</code>).
+  That token ties your station to your account, and its readings appear on your <b>Weather</b> tab.</p>
 
   <!-- ─────────────────────────────  STEP 3  ───────────────────────────── -->
   <div class="step-h" id="relay"><span class="step-n">3</span><h2>Run the relay</h2></div>
-  <p>A small script reads your station and POSTs a <code>metrics</code> map to
-  <code>/api/ingest/custom</code> every few minutes. Here it is for <b>Ambient Weather</b> (pure Python,
+  <p>A small script reads your station and POSTs its readings to
+  <code>/api/ingest/weather</code> every few minutes. Here it is for <b>Ambient Weather</b> (pure Python,
   no dependencies) — schedule it from <code>cron</code> on any always-on box:</p>
-  <pre><code><span class="c"># weather-relay.py — Ambient Weather → Jumboshack Custom</span>
+  <pre><code><span class="c"># weather-relay.py — Ambient Weather → Jumboshack Weather</span>
 import json, urllib.request
 from datetime import datetime, timezone
 
 AMBIENT_APP_KEY = "your_application_key"   <span class="c"># dashboard.ambientweather.net → API keys</span>
 AMBIENT_API_KEY = "your_api_key"
-JUMBO_TOKEN     = "jsk_your_custom_device_token"
+JUMBO_TOKEN     = "jsk_your_weather_device_token"
 
 url = f"https://api.ambientweather.net/v1/devices?applicationKey={AMBIENT_APP_KEY}&apiKey={AMBIENT_API_KEY}"
 d = json.load(urllib.request.urlopen(url, timeout=15))[0]["lastData"]
 
-<span class="c"># map the station's fields to clean metric names (see naming tips below)</span>
-metrics = {}
+<span class="c"># map the station's fields to Jumboshack's weather field names</span>
+reading = {"station": "Backyard"}
 for src, dst in (("tempf","temp_f"), ("humidity","humidity_pct"), ("windspeedmph","wind_mph"),
-                 ("windgustmph","gust_mph"), ("hourlyrainin","rain_in"), ("baromrelin","pressure_inhg"),
-                 ("uv","uv"), ("solarradiation","solar_wm2")):
+                 ("windgustmph","gust_mph"), ("winddir","wind_dir_deg"), ("hourlyrainin","rain_in"),
+                 ("baromrelin","pressure_inhg"), ("uv","uv"), ("solarradiation","solar_wm2")):
     if d.get(src) is not None:
-        metrics[dst] = float(d[src])
+        reading[dst] = float(d[src])
 
-body = json.dumps({"metadata": {"time": datetime.now(timezone.utc).isoformat(),
-                                "software_version": "weather-relay/1.0"},
-                   "metrics": metrics}).encode()
-req = urllib.request.Request("https://ingest.jumboshack.com/api/ingest/custom", data=body,
-        method="POST", headers={"Authorization": f"Bearer {JUMBO_TOKEN}",
-                                "Content-Type": "application/json"})
+reading["metadata"] = {"time": datetime.now(timezone.utc).isoformat(), "software_version": "weather-relay/1.0"}
+req = urllib.request.Request("https://ingest.jumboshack.com/api/ingest/weather",
+        data=json.dumps(reading).encode(), method="POST",
+        headers={"Authorization": f"Bearer {JUMBO_TOKEN}", "Content-Type": "application/json"})
 print(urllib.request.urlopen(req, timeout=20).read().decode())</code></pre>
   <p>Test it once, then schedule every 5 minutes:</p>
   <pre><code><span class="c"># dry run first — validates + echoes what was understood, stores nothing</span>
@@ -166,30 +163,28 @@ crontab -e
     <b>Other stations, same idea.</b> <b>Ecowitt:</b> read the local gateway API
     (<code>http://&lt;gateway-ip&gt;/get_livedata_info</code>) or the Ecowitt cloud API and map the fields
     the same way. <b>Tempest:</b> use the WeatherFlow REST API. <b>Home Assistant users:</b> if your
-    station is already in HA, a REST-command automation can POST the same <code>metrics</code> JSON to
-    <code>/api/ingest/custom</code> on a timer — no separate script.
+    station is already in HA, a REST-command automation can POST the same reading JSON to
+    <code>/api/ingest/weather</code> on a timer — no separate script.
   </div>
 
   <!-- ─────────────────────────────  STEP 4  ───────────────────────────── -->
-  <div class="step-h" id="verify"><span class="step-n">4</span><h2>Verify &amp; label</h2></div>
-  <p>Within a few minutes, open <a href="https://app.jumboshack.com/custom">your Custom tab</a> — each
-  metric shows as a card with a hover trend (daily high/low/avg). Rename the tab to “Weather”
-  (double-click it) if you like.</p>
-  <h3>Metric-naming tips (so it auto-formats)</h3>
-  <ul>
-    <li><code>temp_f</code> → shows <b>°F</b>; <code>humidity_pct</code> → <b>%</b> — these format automatically.</li>
-    <li><code>wind_mph</code>, <code>gust_mph</code>, <code>rain_in</code>, <code>pressure_inhg</code>,
-      <code>uv</code>, <code>solar_wm2</code> show as plain numbers — set a unit label (mph, in, inHg, W/m²)
-      with the <b>✎</b> on each card, once.</li>
-    <li>Only numeric values are stored; send whatever your station reports. Full format: the
-      <a href="https://app.jumboshack.com/ingest-docs">API guide</a> (“Custom — any numbers you want”).</li>
-  </ul>
+  <div class="step-h" id="verify"><span class="step-n">4</span><h2>Verify</h2></div>
+  <p>Within a few minutes, open <a href="https://app.jumboshack.com/weather">your Weather tab</a> — each
+  reading shows as a labeled card (with units) and a hover trend of the daily high / low / average.</p>
+  <h3>Supported fields</h3>
+  <p>Send any of these (all optional; units are applied automatically):
+  <code>temp_f</code>, <code>feels_like_f</code>, <code>dew_point_f</code>, <code>humidity_pct</code>,
+  <code>wind_mph</code>, <code>gust_mph</code>, <code>wind_dir_deg</code>, <code>rain_in</code>,
+  <code>rain_rate_inhr</code>, <code>pressure_inhg</code>, <code>uv</code>, <code>solar_wm2</code>,
+  <code>temp_indoor_f</code>, <code>humidity_indoor_pct</code>. Add <code>"station":"Backyard"</code> to
+  label a station (or send a <code>stations</code> array for several). Verify with
+  <code>?validate=1</code> — it echoes what was understood without storing.</p>
 
   <h2>Troubleshooting</h2>
   <ul>
-    <li><b><code>401</code>?</b> Wrong token, or the device isn't set to the <b>custom</b> module — re-copy from Account.</li>
+    <li><b><code>401</code>?</b> Wrong token, or the device isn't set to the <b>weather</b> module — re-copy from Account.</li>
     <li><b>Ambient API empty?</b> Give it a minute after generating keys; make sure the station is online in the Ambient app.</li>
-    <li><b>Nothing on the Custom tab?</b> Run the script by hand and check the response is <code>{"ok":true,…}</code>; confirm the station is reporting.</li>
+    <li><b>Nothing on the Weather tab?</b> Run the script by hand and check the response is <code>{"ok":true,…}</code>; confirm the station is reporting.</li>
   </ul>
 
   <div class="callout">
